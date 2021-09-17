@@ -1,5 +1,3 @@
-
-
 # <img src="https://raw.githubusercontent.com/kuijjerlab/retriever/main/inst/retriever.png" width="30" title="retriever logo"> retriever
 An R package to generate robust disease-specific response signatures from the LINCS-L1000 data that are independent of time, concentration, and cell-line. Based on the cell lines used as surrogates, the returned profiles represent the unique transcriptional changes induced by a compound in a given disease.
 
@@ -13,3 +11,11 @@ The procedure to generate disease-specific drug-response profiles was divided in
 3 - (Panel C) To generate disease specific drug-response profiles we again applied the procedure described in the step 1 to the stable response profiles to the same compounds in this case, in three cell lines used as surrogate of the triple-negative breast cancer in the LINCS-L1000 project. Thus, the profiles returned by the third step are robust disease-specific transcriptional signatures representing the changes that are unique for a compound in triple-negative breast cancer. 
 
 ![method](https://raw.githubusercontent.com/kuijjerlab/retriever/main/inst/method.png)
+
+## Usage
+**retriever** is under active development, you can install it, using the following command:
+```{r}
+library(remotes)
+install_github('kuijjerlab/retriever')
+library(retriever)
+```
