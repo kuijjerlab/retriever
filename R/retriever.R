@@ -11,7 +11,7 @@
 #' @return Robust disease-specific drug-response profiles that represent the unique transcriptional changes induced by a compound in a given disease.
 #' @author Daniel Osorio <daniecos@uio.no>
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' # Generate a robust profiles across different breast cancer cell lines.
 #' BRCA <- retriever(cellLines = c('MDAMB231', 'MCF7', 'SKBR3', 'HS578T', 'BT20'))
