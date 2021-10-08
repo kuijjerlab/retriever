@@ -25,7 +25,7 @@ In the second step, we take the stable time-independent signature profiles of th
 In the last step, to generate disease-specific drug response profiles we again applied the procedure described in the step 1 to the stable response profiles to the same compounds in the three cell lines used as surrogate of the triple-negative breast cancer in the LINCS-L1000 project. The profiles returned by the third step are robust disease-specific transcriptional signatures representing the changes that are unique for a compound in triple-negative breast cancer.
 }
 \examples{
-\dontrun{
+\donttest{
 
 # Generate a robust profiles across different breast cancer cell lines.
 BRCA <- retriever(cellLines = c('MDAMB231', 'MCF7', 'SKBR3', 'HS578T', 'BT20'))
