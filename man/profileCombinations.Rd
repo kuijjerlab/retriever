@@ -9,6 +9,9 @@ profileCombinations(responseProfiles)
 \arguments{
 \item{responseProfiles}{A matrix of response profiles for drugs (rows are genes, columns are drugs)}
 }
+\value{
+A matrix with genes in the rows and profiles combination in the columns. The values represent the expected transcriptional response of the cells (used as input of retriever) to a drug combination.
+}
 \description{
 Returns the average of every possible two response profile non-redundant combination from the input matrix
 }
