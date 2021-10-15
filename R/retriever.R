@@ -20,85 +20,90 @@
 retriever <- function(cellLines, corThreshold = 0.6){
 
   # Loading data and getting associated metadata
-  utils::data('l1000_es', package = 'ccdata', envir = environment())
-  l1000_es <- l1000_es
-  colnames(l1000_es) <- gsub('\\[|\\]', '', colnames(l1000_es))
-  profilesMetadata <- getProfilesMetadata(colnames(l1000_es))
-  genesMetadata <- rownames(l1000_es)
+  if(!requireNamespace("ccdata", quietly = TRUE)){
+    stop("Bioconductor package \"ccdata\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  } else {
+    utils::data('l1000_es', package = 'ccdata', envir = environment())
+    l1000_es <- l1000_es
+    colnames(l1000_es) <- gsub('\\[|\\]', '', colnames(l1000_es))
+    profilesMetadata <- getProfilesMetadata(colnames(l1000_es))
+    genesMetadata <- rownames(l1000_es)
 
-  # Filtering cell lines
-  mCellLines <- match.arg(cellLines, unique(profilesMetadata$cellLine), several.ok = TRUE)
-  if(!all(cellLines %in% mCellLines)){
-    stop(message = paste0('\n', cellLines[!cellLines %in% mCellLines], ' cell line not found'))
+    # Filtering cell lines
+    mCellLines <- match.arg(cellLines, unique(profilesMetadata$cellLine), several.ok = TRUE)
+    if(!all(cellLines %in% mCellLines)){
+      stop(message = paste0('\n', cellLines[!cellLines %in% mCellLines], ' cell line not found'))
+    }
+    profilesMetadata <- profilesMetadata[profilesMetadata$cellLine %in% mCellLines,]
+
+    # Step 1
+    S1 <- profilesMetadata[,1:3]
+    S1 <- apply(S1, 1, function(X){paste0(X, collapse = '_')})
+    S1 <- unique(S1)
+    message('Step 1: ')
+    S1Profiles <- pbapply::pbsapply(S1, function(N){
+      X <- l1000_es[,profilesMetadata$name[grepl(N, profilesMetadata$name)], drop = FALSE]
+      if(ncol(X)>1){
+        X <- preprocessCore::normalize.quantiles(as.matrix(X))
+      }
+      corValue <- stats::cor(data.frame(rowMeans(X),X),method = 'sp')[,1]
+      corValue <- (corValue[-1] > corThreshold)
+      if(sum(corValue) > 1){
+        return(rowMeans(X[,corValue]))
+      } else {
+        return(rep(NA, 1001))
+      }
+    })
+    colnames(S1Profiles) <- S1
+    S1Profiles <- S1Profiles[,stats::complete.cases(t(S1Profiles))]
+    S1_names <- colnames(S1Profiles)
+    rownames(S1Profiles) <- genesMetadata
+
+    # Step 2
+    S2 <- profilesMetadata[,1:2]
+    S2 <- apply(S2, 1, function(X){paste0(X, collapse = '_')})
+    S2 <- unique(S2)
+    message('Step 2: ')
+    S2Profiles <- pbapply::pbsapply(S2, function(N){
+      X <- S1Profiles[,grepl(N, S1_names, fixed = TRUE), drop = FALSE]
+      if(ncol(X)>1){
+        X <- preprocessCore::normalize.quantiles(as.matrix(X))
+      }
+      corValue <- stats::cor(data.frame(rowMeans(X),X),method = 'sp')[,1]
+      corValue <- (corValue[-1] > corThreshold)
+      if(sum(corValue) > 1){
+        return(rowMeans(X[,corValue]))
+      } else {
+        return(rep(NA, 1001))
+      }
+    })
+    colnames(S2Profiles) <- S2
+    S2Profiles <- S2Profiles[,stats::complete.cases(t(S2Profiles))]
+    S2_names <- colnames(S2Profiles)
+    rownames(S2Profiles) <- genesMetadata
+
+    # Step 3
+    S3 <- unique(profilesMetadata[,1])
+    message('Step 3:')
+    S3Profiles <- pbapply::pbsapply(S3, function(N){
+      X <- S2Profiles[,grepl(N, S2_names, fixed = TRUE), drop = FALSE]
+      if(ncol(X)>1){
+        X <- preprocessCore::normalize.quantiles(as.matrix(X))
+      }
+      corValue <- stats::cor(data.frame(rowMeans(X),X),method = 'sp')[,1]
+      corValue <- (corValue[-1] > corThreshold)
+      if(sum(corValue) > 1){
+        return(rowMeans(X[,corValue]))
+      } else {
+        return(rep(NA, 1001))
+      }
+    })
+    colnames(S3Profiles) <- S3
+    S3Profiles <- S3Profiles[,stats::complete.cases(t(S3Profiles))]
+    S3_names <- colnames(S3Profiles)
+    rownames(S3Profiles) <- rownames(l1000_es)
+
+    return(S3Profiles)
   }
-  profilesMetadata <- profilesMetadata[profilesMetadata$cellLine %in% mCellLines,]
-
-  # Step 1
-  S1 <- profilesMetadata[,1:3]
-  S1 <- apply(S1, 1, function(X){paste0(X, collapse = '_')})
-  S1 <- unique(S1)
-  message('Step 1: ')
-  S1Profiles <- pbapply::pbsapply(S1, function(N){
-    X <- l1000_es[,profilesMetadata$name[grepl(N, profilesMetadata$name)], drop = FALSE]
-    if(ncol(X)>1){
-      X <- preprocessCore::normalize.quantiles(as.matrix(X))
-    }
-    corValue <- stats::cor(data.frame(rowMeans(X),X),method = 'sp')[,1]
-    corValue <- (corValue[-1] > corThreshold)
-    if(sum(corValue) > 1){
-      return(rowMeans(X[,corValue]))
-    } else {
-      return(rep(NA, 1001))
-    }
-  })
-  colnames(S1Profiles) <- S1
-  S1Profiles <- S1Profiles[,stats::complete.cases(t(S1Profiles))]
-  S1_names <- colnames(S1Profiles)
-  rownames(S1Profiles) <- genesMetadata
-
-  # Step 2
-  S2 <- profilesMetadata[,1:2]
-  S2 <- apply(S2, 1, function(X){paste0(X, collapse = '_')})
-  S2 <- unique(S2)
-  message('Step 2: ')
-  S2Profiles <- pbapply::pbsapply(S2, function(N){
-    X <- S1Profiles[,grepl(N, S1_names, fixed = TRUE), drop = FALSE]
-    if(ncol(X)>1){
-      X <- preprocessCore::normalize.quantiles(as.matrix(X))
-    }
-    corValue <- stats::cor(data.frame(rowMeans(X),X),method = 'sp')[,1]
-    corValue <- (corValue[-1] > corThreshold)
-    if(sum(corValue) > 1){
-      return(rowMeans(X[,corValue]))
-    } else {
-      return(rep(NA, 1001))
-    }
-  })
-  colnames(S2Profiles) <- S2
-  S2Profiles <- S2Profiles[,stats::complete.cases(t(S2Profiles))]
-  S2_names <- colnames(S2Profiles)
-  rownames(S2Profiles) <- genesMetadata
-
-  # Step 3
-  S3 <- unique(profilesMetadata[,1])
-  message('Step 3:')
-  S3Profiles <- pbapply::pbsapply(S3, function(N){
-    X <- S2Profiles[,grepl(N, S2_names, fixed = TRUE), drop = FALSE]
-    if(ncol(X)>1){
-      X <- preprocessCore::normalize.quantiles(as.matrix(X))
-    }
-    corValue <- stats::cor(data.frame(rowMeans(X),X),method = 'sp')[,1]
-    corValue <- (corValue[-1] > corThreshold)
-    if(sum(corValue) > 1){
-      return(rowMeans(X[,corValue]))
-    } else {
-      return(rep(NA, 1001))
-    }
-  })
-  colnames(S3Profiles) <- S3
-  S3Profiles <- S3Profiles[,stats::complete.cases(t(S3Profiles))]
-  S3_names <- colnames(S3Profiles)
-  rownames(S3Profiles) <- rownames(l1000_es)
-
-  return(S3Profiles)
 }
