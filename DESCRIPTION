@@ -1,13 +1,15 @@
 Package: retriever
 Type: Package
 Title: Generate Disease-Specific Response Signatures from the LINCS-L1000 Data
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(person("Daniel","Osorio", email = "daniecos@uio.no", role = c("aut","cre"), comment = c(ORCID = "0000-0003-4424-8422")),
              person("Marieke","Kuijjer", role = c("aut"), comment = c(ORCID = "0000-0001-6280-3130")))
 Description: Generates disease-specific drug-response profiles that are independent of time, concentration, and cell-line. Based on the cell lines used as surrogates, the returned profiles represent the unique transcriptional changes induced by a compound in a given disease.
 Depends: R (>= 3.5.0)
-Imports: ccdata, pbapply, preprocessCore
+Imports: pbapply, preprocessCore
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
+Suggests: 
+    ccdata
