@@ -21,8 +21,7 @@ retriever <- function(cellLines, corThreshold = 0.6){
 
   # Loading data and getting associated metadata
   if(!requireNamespace("ccdata", quietly = TRUE)){
-    stop("Bioconductor package \"ccdata\" needed for this function to work. Please install it.",
-         call. = FALSE)
+    message("Bioconductor package \"ccdata\" needed for this function to work. Please install it.")
   } else {
     utils::data('l1000_es', package = 'ccdata', envir = environment())
     l1000_es <- l1000_es
